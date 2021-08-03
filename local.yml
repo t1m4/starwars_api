@@ -37,7 +37,20 @@ services:
       - redis
 #    command: /start-celeryworker
     command: celery -A starwars worker --concurrency=10 -l INFO
-
+  dashboard:
+    build:
+      context: .
+      dockerfile: ./compose/local/Dockerfile
+    command: celery flower --app=worker.celery --port=5555 --broker=redis://redis:6379/1
+    ports:
+      - 5556:5555
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - app
+      - redis
+      - celery
 
 volumes:
   database-data: { }

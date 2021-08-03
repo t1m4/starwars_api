@@ -22,7 +22,7 @@ python-dotenv
 celery
 redis
 django-celery-results
-
+flower
 #
 petl
 requests
