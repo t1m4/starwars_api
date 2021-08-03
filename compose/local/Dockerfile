@@ -1,6 +1,7 @@
 FROM python:3.9
 WORKDIR /app
 
+ENV PYTHONUNBUFFERED 1
 COPY ./compose/start.sh /start
 RUN sed -i 's/\r//' /start
 RUN chmod +x /start

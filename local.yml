@@ -2,7 +2,7 @@ version: '3'
 services:
   redis:
     image: "redis"
-    restart: always
+    restart: on-failure
     container_name: 'app_redis'
     command: redis-server
     stdin_open: true
@@ -36,7 +36,7 @@ services:
       - app
       - redis
 #    command: /start-celeryworker
-    command: celery -A starwars.celery_app worker -l INFO
+    command: celery -A starwars worker -l INFO
 
 
 volumes:
