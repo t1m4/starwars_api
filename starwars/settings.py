@@ -176,7 +176,8 @@ LOGGING = {
 }
 # Celery
 CELERY_BROKER_URL = 'redis://app_redis:6379/1'
-CELERY_RESULT_BACKEND = 'django-db'
+CELERY_RESULT_BACKEND = 'redis://app_redis:6379/0'
+CELERY_IGNORE_RESULT = False
 # SWAPI
 PEOPLE_URL = 'https://swapi.dev/api/people'
 

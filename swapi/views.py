@@ -10,6 +10,6 @@ from swapi.tasks import main_start, get_people
 
 class View(APIView):
     def get(self, request, *args, **kwargs):
-        # get_people.delay()
-        data = get_people()
-        return Response(data)
+        # r = get_people()
+        r = main_start()
+        return Response(r)

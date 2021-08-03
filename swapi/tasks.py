@@ -1,10 +1,7 @@
-import datetime
 import logging
 import math
 import time
-from pprint import pprint
 
-import requests
 from celery import shared_task, group, chord
 
 from starwars.settings import PEOPLE_URL
@@ -15,43 +12,35 @@ logger = logging.getLogger('starwars.console_logger')
 
 @shared_task
 def get_each_page(url):
-    response = get_json(url)
-    return len(response['results'])
+    result, next = get_page_persons(url)
+    return result
 
 
 @shared_task
-def get_each_person_homeworld(res):
-    logger.info("I am getting each hoemworld " + str(len(res)))
-
+def save_in_csv(result):
+    return result
 
 
 def main_start():
-    logger.info("I'm just starting")
+    start_time = time.time()
+
     total_results = []
     response = get_json(PEOPLE_URL)
     total_results.extend(response['results'])
     count_in_first = len(response['results'])
     count_of_person = response['count']
     count_of_pages = math.ceil(count_of_person / count_in_first)
-    print(count_of_pages)
 
-    g = group(get_each_page.s(PEOPLE_URL + "?page=" + str(i)) for i in range(2, count_of_pages + 1))()
-    while not g.ready():
-        print('ready', g.ready(), g.successful())
-        print()
-    # result = (group(get_each_page.s(PEOPLE_URL + "?page=" + str(i)) for i in range(2, count_of_pages + 1)) | get_each_person_homeworld.s())()
-    # print(result)
-    # c = chord(group(get_each_page.s(PEOPLE_URL + "?page=" + str(i)) for i in range(2, count_of_pages + 1)), get_each_person_homeworld.s())()
-    # print("helo", c)
-
-
+    tasks = group(get_each_page.s(PEOPLE_URL + "?page=" + str(i)) for i in range(1, count_of_pages + 1))
+    callback = save_in_csv.s()
+    c = chord(tasks, callback)()
+    total_results = c.get()
+    print(time.time() - start_time)
     return total_results
-
 
 
 @shared_task
 def get_people():
-    start_time = time.time()
     total_results = []
 
     result, next = get_page_persons(PEOPLE_URL)
@@ -63,6 +52,7 @@ def get_people():
 
     write_file('test.json', total_results)
     return total_results
+
 
 @shared_task
 def add(a, b):
