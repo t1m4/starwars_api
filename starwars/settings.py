@@ -46,10 +46,15 @@ INSTALLED_APPS += [
 INSTALLED_APPS += [
     'debug_toolbar',
 ]
+# CELERY
+INSTALLED_APPS += [
+    'django_celery_results',
+]
 # APPS
 INSTALLED_APPS += [
     'swapi',
 ]
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -93,6 +98,7 @@ DATABASES = {
     }
 }
 
+# Cache
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -157,12 +163,7 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'info.log',
-            'formatter': 'verbose',
-        },
+
     },
     'loggers': {
         'starwars.console_logger': {
@@ -170,14 +171,17 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO'
         },
-        'file_logger': {
-            'handlers': ['file'],
-            'level': 'INFO',
-            'propagate': False,
-        }
+
     }
 }
 # Celery
 CELERY_BROKER_URL = 'redis://app_redis:6379/1'
+CELERY_RESULT_BACKEND = 'django-db'
+# SWAPI
+PEOPLE_URL = 'https://swapi.dev/api/people'
 
 
+# Debug
+INTERNAL_IPS = [
+    '127.0.0.1',
+]

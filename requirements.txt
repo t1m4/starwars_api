@@ -21,6 +21,7 @@ python-dotenv
 # celery
 celery
 redis
+django-celery-results
 
 #
 petl
