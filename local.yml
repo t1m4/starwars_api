@@ -1,0 +1,44 @@
+version: '3'
+services:
+  redis:
+    image: "redis"
+    restart: always
+    container_name: 'app_redis'
+    command: redis-server
+    stdin_open: true
+    ports:
+      - '6379:6379'
+    volumes:
+      - "redis-data:/data"
+  app:
+    build:
+      context: .
+      dockerfile: ./compose/local/Dockerfile
+    volumes:
+      - .:/app
+    stdin_open: true
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    command: python manage.py runserver 0.0.0.0:8000
+
+  celery:
+    build:
+      context: .
+      dockerfile: ./compose/local/Dockerfile
+    container_name: 'app_celery'
+    volumes:
+      - .:/code
+    links:
+      - redis
+    depends_on:
+      - app
+      - redis
+#    command: /start-celeryworker
+    command: celery -A starwars.celery_app worker -l INFO
+
+
+volumes:
+  database-data: { }
+  redis-data: { }

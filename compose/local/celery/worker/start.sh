@@ -1,0 +1,1 @@
+celery -A starwars.celery_app worker -l INFO
