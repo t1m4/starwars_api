@@ -48,7 +48,7 @@ class StarwarsApi:
                 results = response['results']
                 yield results
 
-    def get_person_information(self, films, type):
+    def get_person_information(self, films: list, type: str):
         types = {
             'films': 'title',
             'species': 'name',
@@ -66,9 +66,7 @@ class StarwarsApi:
 
 def people_dataset():
     api_client = StarwarsApi()
-    start_time = time.time()
     for page in api_client.get_people_list():
-        start_time = time.time()
         for person in page:
             result = {}
             result['name'] = person.get('name')
@@ -82,9 +80,6 @@ def people_dataset():
             result['species'] = api_client.get_person_information(person.get('species'), type='species')
             result['starships'] = api_client.get_person_information(person.get('starships'), type='starships')
             yield result
-        print(time.time() - start_time)
-        print('hello', type(page))
-    print(time.time() - start_time)
 
 
 if __name__ == '__main__':

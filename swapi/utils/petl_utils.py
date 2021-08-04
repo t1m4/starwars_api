@@ -1,5 +1,5 @@
-import json
 import logging
+import os
 
 import petl
 from django.conf import settings
@@ -7,7 +7,18 @@ from django.conf import settings
 logger = logging.getLogger('starwars.console_logger')
 
 
-def write_to_csv(filename, array: list):
+class CSVWriter():
+    def write(self, filename: str, content: dict):
+        content = [content]
+        table = petl.fromdicts(content, header=content[0].keys())
+        exist = os.path.exists(filename)
+        if exist:
+            petl.appendcsv(table, filename)
+        else:
+            petl.appendcsv(table, filename, write_header=True)
+
+
+def write_to_csv(filename: str, array: list):
     """
     Change from matrix to array and save it in CSV
     """
@@ -28,10 +39,6 @@ def get_list_from_csv(filename):
 
 
 if __name__ == '__main__':
-    with open("../../tests/data/full.json", 'r') as f:
-        r = json.load(f)
-
-    # test many pages
-    # for i in range(10):
-    #     r.extend([r[0]])
-    write_to_csv("../../example.csv", r)
+    d = {'hello': 1, 'world': []}
+    csv_writer = CSVWriter()
+    csv_writer.write('example.csv', d)
