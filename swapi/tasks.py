@@ -1,11 +1,13 @@
+import datetime
 import logging
 import math
 import time
 
+import celery.exceptions
 from celery import shared_task, group, chord
 
 from starwars.settings import PEOPLE_URL
-from swapi.utils import get_json, get_page_persons, write_file
+from swapi.utils import get_json, get_page_persons, write_file, write_to_csv
 
 logger = logging.getLogger('starwars.console_logger')
 
@@ -18,7 +20,10 @@ def get_each_page(url):
 
 @shared_task
 def save_in_csv(result):
-    return result
+    filename = '/app/people' + datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S") + '.csv'
+    write_to_csv(filename, result)
+    logger.info('Write to file '+ filename)
+    return filename
 
 
 def main_start():
@@ -34,7 +39,10 @@ def main_start():
     tasks = group(get_each_page.s(PEOPLE_URL + "?page=" + str(i)) for i in range(1, count_of_pages + 1))
     callback = save_in_csv.s()
     c = chord(tasks, callback)()
-    total_results = c.get()
+    try:
+        total_results = c.get(timeout=10)
+    except celery.exceptions.TimeoutError:
+        pass
     print(time.time() - start_time)
     return total_results
 

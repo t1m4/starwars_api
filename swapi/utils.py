@@ -2,6 +2,7 @@ import json
 import logging
 from typing import List
 
+import petl
 import requests
 
 logger = logging.getLogger('starwars.console_logger')
@@ -21,23 +22,37 @@ def get_json(url: str):
         return content
 
 
+fields = ['name', 'height', 'mass', 'hair_color', 'skin_color', 'eye_color', 'birth_year', 'gender', 'homeworld',
+          'date']
+
+
+def get_all_fields(person):
+    result = []
+    for i in fields:
+        result.append(person.get(i))
+    return result
+
+
 def get_page_persons(url: str) -> (List, str):
     response = get_json(url)
     if response:
-        for result in response['results']:
+        for person in response['results']:
             # change homeworld
-            homeworld_response = get_json(result['homeworld'])
-            result['homeworld'] = homeworld_response['name']
+            homeworld_response = get_json(person['homeworld'])
+            if homeworld_response:
+                person['homeworld'] = homeworld_response['name']
+            else:
+                person['homeworld'] = None
             # change edited date
-            result['date'] = result['edited'][:10]
+            person['date'] = person['edited'][:10]
             # delete
-            del result['films']
-            del result['species']
-            del result['vehicles']
-            del result['starships']
-            del result['edited']
-            del result['created']
-            del result['url']
+            del person['films']
+            del person['species']
+            del person['vehicles']
+            del person['starships']
+            del person['edited']
+            del person['created']
+            del person['url']
         return (response['results'], response['next'])
     else:
         return ([], "")
@@ -46,3 +61,22 @@ def get_page_persons(url: str) -> (List, str):
 def write_file(filename, content):
     with open(filename, "w") as f:
         json.dumps({"results": content})
+
+
+def write_to_csv(filename, array: list):
+    total_result = []
+    for i in range(len(array)):
+        total_result.extend(array[i])
+    table = petl.fromdicts(total_result, header=total_result[0].keys())
+    petl.tocsv(table, filename)
+
+
+
+if __name__ == '__main__':
+    with open("../tests/data/full.json", 'r') as f:
+        r = json.load(f)
+
+    # test many pages
+    # for i in range(10):
+    #     r.extend([r[0]])
+    write_to_csv("../example.csv", r)
