@@ -1,1 +1,2 @@
-celery -A starwars.celery_app worker -l INFO
+#!/bin/bash
+celery -A starwars worker --concurrency=10 -l INFO

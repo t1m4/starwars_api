@@ -21,7 +21,8 @@ services:
       - .env
     ports:
       - "8000:8000"
-    command: python manage.py runserver 0.0.0.0:8000
+#    command: python manage.py runserver 0.0.0.0:8000
+    command: /start
 
   celery:
     build:
@@ -35,8 +36,7 @@ services:
     depends_on:
       - app
       - redis
-#    command: /start-celeryworker
-    command: celery -A starwars worker --concurrency=10 -l INFO
+    command: /start-celeryworker
   dashboard:
     build:
       context: .
