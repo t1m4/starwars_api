@@ -9,13 +9,16 @@ logger = logging.getLogger('starwars.console_logger')
 
 class CSVWriter():
     def write(self, filename: str, content: dict):
+        """
+        Write any dict to csv file. If it doesn't exist then create it with headers
+        """
         content = [content]
         table = petl.fromdicts(content, header=content[0].keys())
         exist = os.path.exists(filename)
         if exist:
-            petl.appendcsv(table, filename)
+            petl.appendcsv(table, settings.STATICFILES_DIRS[0] + filename)
         else:
-            petl.appendcsv(table, filename, write_header=True)
+            petl.appendcsv(table, settings.STATICFILES_DIRS[0] + filename, write_header=True)
 
 
 def write_to_csv(filename: str, array: list):

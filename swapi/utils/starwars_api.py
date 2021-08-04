@@ -41,6 +41,9 @@ class StarwarsApi:
         return [(self.PEOPLE_URL + "?page=" + str(i)) for i in range(1, count_of_pages + 1)]
 
     def get_people_list(self):
+        """
+        Get all people from all pages
+        """
         urls = self.get_people_urls()
         for url in urls:
             response = self.__get_json(url)
@@ -49,6 +52,9 @@ class StarwarsApi:
                 yield results
 
     def get_person_information(self, films: list, type: str):
+        """
+        Get person films, species, vehicles and starships
+        """
         types = {
             'films': 'title',
             'species': 'name',

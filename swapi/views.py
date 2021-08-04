@@ -6,15 +6,15 @@ from rest_framework.views import APIView
 
 from swapi.models import File
 from swapi.serializers import FileSerializer
-from swapi.tasks import main_start
+from swapi.tasks import task_get_all_in_csv
 from swapi.utils.model_utils import get_object_or_none
 from swapi.utils.petl_utils import get_list_from_csv
 
 
 class View(APIView):
     def get(self, request, *args, **kwargs):
-        r = main_start()
-        return Response(r)
+        task_get_all_in_csv.delay()
+        return Response("ok")
 
 
 class PersonView(APIView):
