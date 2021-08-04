@@ -7,7 +7,7 @@ import celery.exceptions
 from celery import shared_task, group, chord
 
 from starwars.settings import PEOPLE_URL
-from swapi.utils import get_json, get_page_persons, write_file, write_to_csv
+from swapi.utils import get_json, get_page_persons, write_to_csv
 
 logger = logging.getLogger('starwars.console_logger')
 
@@ -26,43 +26,36 @@ def save_in_csv(result):
     return filename
 
 
-def main_start():
-    start_time = time.time()
-
-    total_results = []
+def get_count_of_page():
     response = get_json(PEOPLE_URL)
-    total_results.extend(response['results'])
     count_in_first = len(response['results'])
     count_of_person = response['count']
     count_of_pages = math.ceil(count_of_person / count_in_first)
+    return count_of_pages
 
+def main_start():
+    start_time = time.time()
+
+    count_of_pages = get_count_of_page()
     tasks = group(get_each_page.s(PEOPLE_URL + "?page=" + str(i)) for i in range(1, count_of_pages + 1))
     callback = save_in_csv.s()
     c = chord(tasks, callback)()
     try:
         total_results = c.get(timeout=10)
     except celery.exceptions.TimeoutError:
-        pass
+        total_results = []
+
     print(time.time() - start_time)
     return total_results
 
 
-@shared_task
-def get_people():
-    total_results = []
-
-    result, next = get_page_persons(PEOPLE_URL)
-    total_results.extend(result)
-
-    while next:
-        result, next = get_page_persons(next)
-        total_results.extend(result)
-
-    write_file('test.json', total_results)
-    return total_results
-
 
 @shared_task
-def add(a, b):
-    logger.info("hello")
-    return a + b
+def get_people_periodic():
+    logger.info("Start task for collecting people")
+
+    count_of_pages = get_count_of_page()
+
+    tasks = group(get_each_page.s(PEOPLE_URL + "?page=" + str(i)) for i in range(1, count_of_pages + 1))
+    callback = save_in_csv.s()
+    chord(tasks, callback)()

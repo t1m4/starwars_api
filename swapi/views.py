@@ -5,11 +5,10 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from swapi.tasks import main_start, get_people
+from swapi.tasks import main_start
 
 
 class View(APIView):
     def get(self, request, *args, **kwargs):
-        # r = get_people()
         r = main_start()
         return Response(r)

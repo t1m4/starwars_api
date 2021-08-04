@@ -13,24 +13,13 @@ def get_json(url: str):
     Get json content from url
     """
     try:
-        r = requests.get(url)
+        r = requests.get(url, timeout=10)
     except:
         logger.info('Something wrong with %s' % url)
         return None
     if r.status_code == 200:
         content = r.json()
         return content
-
-
-fields = ['name', 'height', 'mass', 'hair_color', 'skin_color', 'eye_color', 'birth_year', 'gender', 'homeworld',
-          'date']
-
-
-def get_all_fields(person):
-    result = []
-    for i in fields:
-        result.append(person.get(i))
-    return result
 
 
 def get_page_persons(url: str) -> (List, str):
@@ -58,18 +47,12 @@ def get_page_persons(url: str) -> (List, str):
         return ([], "")
 
 
-def write_file(filename, content):
-    with open(filename, "w") as f:
-        json.dumps({"results": content})
-
-
 def write_to_csv(filename, array: list):
     total_result = []
     for i in range(len(array)):
         total_result.extend(array[i])
     table = petl.fromdicts(total_result, header=total_result[0].keys())
     petl.tocsv(table, filename)
-
 
 
 if __name__ == '__main__':
