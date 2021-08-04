@@ -63,11 +63,12 @@ def write_to_csv(filename, array: list):
     petl.tocsv(table, filename)
     return len(total_result)
 
+
 if __name__ == '__main__':
-    with open("../tests/data/full.json", 'r') as f:
+    with open("../../tests/data/full.json", 'r') as f:
         r = json.load(f)
 
     # test many pages
     # for i in range(10):
     #     r.extend([r[0]])
-    write_to_csv("../example.csv", r)
+    write_to_csv("../../example.csv", r)
