@@ -15,13 +15,19 @@ def get_json(url: str):
     Get json content from url
     """
     try:
-        r = requests.get(url, timeout=PAGE_TIMEOUT)
+        if PAGE_TIMEOUT:
+            r = requests.get(url, timeout=PAGE_TIMEOUT)
+        else:
+            r = requests.get(url)
     except:
         logger.info('Something wrong with %s' % url)
         return None
     if r.status_code == 200:
         content = r.json()
         return content
+    else:
+        # TODO sometime throw 404. We can request it again
+        logger.info(f'Status code for {url}: {r.status_code}')
 
 
 def get_page_persons(url: str) -> (List, str):

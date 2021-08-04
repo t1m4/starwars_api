@@ -188,7 +188,8 @@ CELERY_BEAT_SCHEDULE = {
 }
 # SWAPI
 PEOPLE_URL = 'https://swapi.dev/api/people'
-PAGE_TIMEOUT = 10
+# None or int
+PAGE_TIMEOUT = None
 
 # Debug
 INTERNAL_IPS = [
