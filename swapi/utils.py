@@ -5,6 +5,8 @@ from typing import List
 import petl
 import requests
 
+from starwars.settings import PAGE_TIMEOUT
+
 logger = logging.getLogger('starwars.console_logger')
 
 
@@ -13,7 +15,7 @@ def get_json(url: str):
     Get json content from url
     """
     try:
-        r = requests.get(url, timeout=10)
+        r = requests.get(url, timeout=PAGE_TIMEOUT)
     except:
         logger.info('Something wrong with %s' % url)
         return None
@@ -53,7 +55,7 @@ def write_to_csv(filename, array: list):
         total_result.extend(array[i])
     table = petl.fromdicts(total_result, header=total_result[0].keys())
     petl.tocsv(table, filename)
-
+    return len(total_result)
 
 if __name__ == '__main__':
     with open("../tests/data/full.json", 'r') as f:

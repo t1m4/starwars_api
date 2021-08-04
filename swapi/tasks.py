@@ -7,6 +7,7 @@ import celery.exceptions
 from celery import shared_task, group, chord
 
 from starwars.settings import PEOPLE_URL
+from swapi.models import File
 from swapi.utils import get_json, get_page_persons, write_to_csv
 
 logger = logging.getLogger('starwars.console_logger')
@@ -20,9 +21,10 @@ def get_each_page(url):
 
 @shared_task
 def save_in_csv(result):
-    filename = '/app/people' + datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S") + '.csv'
-    write_to_csv(filename, result)
+    filename = 'static/people' + datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S") + '.csv'
+    count = write_to_csv(filename, result)
     logger.info('Write to file '+ filename)
+    File.objects.create(filename=filename, count_of_pages=count)
     return filename
 
 

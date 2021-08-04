@@ -1,2 +1,2 @@
 #!/bin/bash
-celery -A starwars worker --concurrency=10 -l INFO
+celery -A starwars worker --concurrency=10 -l INFO --beat
