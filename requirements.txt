@@ -23,6 +23,7 @@ celery
 redis
 django-celery-results
 flower
-#
+
+# work with data
 petl
 requests

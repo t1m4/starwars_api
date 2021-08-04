@@ -29,7 +29,7 @@ services:
       dockerfile: ./compose/local/Dockerfile
     container_name: 'app_celery'
     volumes:
-      - .:/code
+      - .:/app
     links:
       - redis
     depends_on:
