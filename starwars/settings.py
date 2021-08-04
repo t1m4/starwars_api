@@ -138,7 +138,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, "static"),
+    os.path.join(BASE_DIR, "static/"),
 )
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
@@ -186,9 +186,6 @@ CELERY_BEAT_SCHEDULE = {
        'schedule': 5 * 60, # each 5 minutes
    }
 }
-# SWAPI
-PEOPLE_URL = 'https://swapi.dev/api/people'
-PAGE_TIMEOUT = None # None or int
 
 # Debug
 INTERNAL_IPS = [
