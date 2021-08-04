@@ -19,6 +19,14 @@ def write_to_csv(filename, array: list):
     return len(total_result)
 
 
+def get_list_from_csv(filename):
+    """
+    Load all persons from csv
+    """
+    t = petl.fromcsv(filename)
+    return list(petl.data(t))
+
+
 if __name__ == '__main__':
     with open("../../tests/data/full.json", 'r') as f:
         r = json.load(f)

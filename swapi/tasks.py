@@ -7,7 +7,7 @@ import celery.exceptions
 from celery import shared_task, group, chord
 
 from swapi.models import File
-from swapi.utils.celery_utils import write_to_csv
+from swapi.utils.petl_utils import write_to_csv
 from swapi.utils.starwars_api import StarwarsApi
 
 logger = logging.getLogger('starwars.console_logger')
