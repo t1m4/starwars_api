@@ -1,6 +1,8 @@
 import logging
 
 import requests
+import simplejson
+from simplejson import JSONDecodeError
 
 from swapi.utils.client_api.exceptions import ClientAPIException
 from swapi.utils.petl_utils import CSVWriter
@@ -10,6 +12,11 @@ logger = logging.getLogger('starwars.console_logger')
 
 class ClientAPI:
     PEOPLE_URL = 'https://swapi.dev/api/people'
+    FIlM_URL = 'https://swapi.dev/api/films/{id}/'
+    SPECIE_URL = 'https://swapi.dev/api/species/{id}/'
+    VEHICLE_URL = 'https://swapi.dev/api/vehicles/{id}/'
+    STARSHIP_URL = 'https://swapi.dev/api/starship/{id}/'
+
     PAGE_TIMEOUT = None
     PERSON_INFO_TYPES = {
         'films': 'title',
@@ -23,14 +30,20 @@ class ClientAPI:
         Get json content from url
         """
         try:
-            r = requests.get(url, params=params, timeout=timeout)
-        except requests.exceptions.RequestException as e:
-            raise ClientAPIException(500, e.args[0])
+            response = requests.get(url, params=params, timeout=timeout)
+        except requests.exceptions.RequestException as error:
+            raise ClientAPIException(error.args[0], 500)
 
-        if r.status_code == 200:
-            return r.json()
+        if response.status_code == 200:
+            return self.__make_json(response)
         else:
-            raise ClientAPIException(r.status_code, "Invalid status code")
+            raise ClientAPIException("Invalid status code", response.status_code)
+
+    def __make_json(self, response: requests.Response):
+        try:
+            return response.json()
+        except simplejson.errors.JSONDecodeError as error:
+            raise ClientAPIException(error.args[0])
 
     def get_people_list(self, start_page: int = 1, end_page: int = 100):
         """
@@ -39,12 +52,7 @@ class ClientAPI:
         result = []
 
         for page_number in range(start_page, end_page + 1):
-            try:
-                page = self.__get_json(self.PEOPLE_URL, params={'page': page_number})
-            except ClientAPIException as e:
-                # or check status code and decide what do you need to do next
-                logger.info(e)
-                break
+            page = self.__get_json(self.PEOPLE_URL, params={'page': page_number})
             result.extend(page['results'])
             if not page['next']:
                 break
@@ -60,13 +68,29 @@ class ClientAPI:
         for url in info_urls:
             try:
                 response = self.__get_json(url)
-            except ClientAPIException as e:
-                logger.info(e)
+            except ClientAPIException as error:
+                logger.info(error)
                 continue
             else:
                 results.append(response[field])
         return results
 
+
+    def get_film_by_id(self, id: int):
+        url = self.FIlM_URL.format(id=id)
+        return self.__get_json(url)
+
+    def get_specie_by_id(self, id: int):
+        url = self.SPECIE_URL.format(id=id)
+        return self.__get_json(url)
+
+    def get_vehicle_by_id(self, id: int):
+        url = self.VEHICLE_URL.format(id=id)
+        return self.__get_json(url)
+
+    def get_starship_by_id(self, id: int):
+        url = self.STARSHIP_URL.format(id=id)
+        return self.__get_json(url)
 
 def people_dataset():
     api_client = ClientAPI()
@@ -79,14 +103,15 @@ def people_dataset():
         result['skin_color'] = person.get('skin_color')
         result['eye_color'] = person.get('eye_color')
         result['gender'] = person.get('gender')
-        result['films'] = api_client.get_person_information(person.get('films'), type='films')
+        result['films'] = api_client.get_film_by_id(person.get('films'), type='films')
         result['species'] = api_client.get_person_information(person.get('species'), type='species')
         result['starships'] = api_client.get_person_information(person.get('starships'), type='starships')
         yield result
 
 
 if __name__ == '__main__':
-    csv_writer = CSVWriter()
-    for person in people_dataset():
-        print(person)
-        csv_writer.write('../../example.csv', person)
+    # csv_writer = CSVWriter()
+    # for person in people_dataset():
+    #     print(person)
+    #     csv_writer.write('../../example.csv', person)
+    api = ClientAPI()
