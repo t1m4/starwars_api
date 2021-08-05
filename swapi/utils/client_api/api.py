@@ -32,14 +32,13 @@ class ClientAPI:
         else:
             raise ClientAPIException(r.status_code, "Invalid status code")
 
-    def get_people_list(self, start: int = 1, end: int = 100):
+    def get_people_list(self, start_page: int = 1, end_page: int = 100):
         """
         Get all people from all pages
         """
         result = []
-        page_number = 1
 
-        while True:
+        for page_number in range(start_page, end_page + 1):
             try:
                 page = self.__get_json(self.PEOPLE_URL, params={'page': page_number})
             except ClientAPIException as e:
@@ -49,7 +48,6 @@ class ClientAPI:
             result.extend(page['results'])
             if not page['next']:
                 break
-            page_number += 1
         return result
 
     def get_person_information(self, info_urls: list, type: str):
@@ -72,7 +70,7 @@ class ClientAPI:
 
 def people_dataset():
     api_client = ClientAPI()
-    for person in api_client.get_people_list():
+    for person in api_client.get_people_list(1, 10):
         result = {}
         result['name'] = person.get('name')
         result['height'] = person.get('height')
