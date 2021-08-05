@@ -12,13 +12,15 @@ class CSVWriter():
         """
         Write any dict to csv file. If it doesn't exist then create it with headers
         """
+        filename = settings.STATICFILES_DIRS[0] + filename
         content = [content]
         table = petl.fromdicts(content, header=content[0].keys())
         exist = os.path.exists(filename)
+        # petl.appendcsv(table, filename, write_header=not exist)
         if exist:
-            petl.appendcsv(table, settings.STATICFILES_DIRS[0] + filename)
+            petl.appendcsv(table,  filename)
         else:
-            petl.appendcsv(table, settings.STATICFILES_DIRS[0] + filename, write_header=True)
+            petl.appendcsv(table,  filename, write_header=True)
 
 
 def write_to_csv(filename: str, array: list):

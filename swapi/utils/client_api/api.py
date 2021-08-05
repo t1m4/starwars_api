@@ -10,7 +10,13 @@ logger = logging.getLogger('starwars.console_logger')
 
 class ClientAPI:
     PEOPLE_URL = 'https://swapi.dev/api/people'
-    PAGE_TIMEOUT = None  # None or int
+    PAGE_TIMEOUT = None
+    PERSON_INFO_TYPES = {
+        'films': 'title',
+        'species': 'name',
+        'vehicles': 'name',
+        'starships': 'name',
+    }
 
     def __get_json(self, url: str, params=None, timeout=None):
         """
@@ -22,8 +28,7 @@ class ClientAPI:
             raise ClientAPIException(500, e.args[0])
 
         if r.status_code == 200:
-            content = r.json()
-            return content
+            return r.json()
         else:
             raise ClientAPIException(r.status_code, "Invalid status code")
 
@@ -33,11 +38,12 @@ class ClientAPI:
         """
         result = []
         page_number = 1
+
         while True:
             try:
                 page = self.__get_json(self.PEOPLE_URL, params={'page': page_number})
             except ClientAPIException as e:
-                # or check status code and decide what do you need to do
+                # or check status code and decide what do you need to do next
                 logger.info(e)
                 break
             result.extend(page['results'])
@@ -50,18 +56,14 @@ class ClientAPI:
         """
         Get person films, species, vehicles and starships
         """
-        types = {
-            'films': 'title',
-            'species': 'name',
-            'vehicles': 'name',
-            'starships': 'name',
-        }
-        field = types[type]
+
+        field = self.PERSON_INFO_TYPES[type]
         results = []
         for url in info_urls:
             try:
                 response = self.__get_json(url)
-            except ClientAPIException:
+            except ClientAPIException as e:
+                logger.info(e)
                 continue
             else:
                 results.append(response[field])

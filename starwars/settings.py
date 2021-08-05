@@ -179,12 +179,12 @@ LOGGING = {
 # Celery
 CELERY_BROKER_URL = 'redis://app_redis:6379/1'
 CELERY_RESULT_BACKEND = 'redis://app_redis:6379/0'
-# CELERY_BEAT_SCHEDULE = {
-#    'add': {
-#        'task': 'swapi.tasks.task_get_all_in_csv',
-#        'schedule': 5 * 60, # each 5 minutes
-#    }
-# }
+CELERY_BEAT_SCHEDULE = {
+   'add': {
+       'task': 'swapi.tasks.task_get_all_in_csv',
+       'schedule': 5 * 60, # each 5 minutes
+   }
+}
 
 # Debug
 INTERNAL_IPS = [
