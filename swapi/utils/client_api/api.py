@@ -47,13 +47,14 @@ class ClientAPI:
         except simplejson.errors.JSONDecodeError as error:
             raise ClientAPIException(error.args[0])
 
-    def get_people_list(self, start_page: int = 1, end_page: int = 100):
+    def get_people_list(self):
         """
         Get all people from all pages
         """
         result = []
 
-        for page_number in range(start_page, end_page + 1):
+        page_number = 1
+        while True:
             page = self.__get_json(self.PEOPLE_URL, params={'page': page_number})
             result.extend(page['results'])
             if not page['next']:
@@ -95,16 +96,15 @@ def get_id_from_url(url: str):
     if result:
         return int(result.group(1))
     else:
-        # TODO what if don't find it. Are you sure about it?
         raise ValueError("Can't find id in url")
 
 
-def get_all_person_tool_ids(films_url: list):
+def get_all_person_tool_ids(urls: list):
     """
     Get list of ids from list of urls
     """
     result = []
-    for i in films_url:
+    for i in urls:
         id = get_id_from_url(i)
         result.append(id)
     return result
@@ -113,7 +113,7 @@ def get_all_person_tool_ids(films_url: list):
 def people_dataset():
     api_client = ClientAPI()
     try:
-        data = api_client.get_people_list(1, 10)
+        data = api_client.get_people_list()
     except ClientAPIException as error:
         return
 
