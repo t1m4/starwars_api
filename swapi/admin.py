@@ -4,6 +4,6 @@ from django.contrib import admin
 from swapi.models import File
 
 class AdminFile(admin.ModelAdmin):
-    list_display = ('id', 'filename', 'count_of_pages', 'datetime')
+    list_display = ('id', 'filename', 'datetime')
 
 admin.site.register(File, AdminFile)
