@@ -1,3 +1,5 @@
+import time
+
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 # Create your views here.
 from rest_framework import status, generics
@@ -8,7 +10,7 @@ from swapi.models import File
 from swapi.serializers import FileSerializer
 from swapi.tasks import task_get_all_in_csv
 from swapi.utils.model_utils import get_object_or_none
-from swapi.utils.petl_utils import get_list_from_csv
+from swapi.utils.petl_utils import get_list_from_csv, csv_reader
 
 
 class View(APIView):
@@ -22,17 +24,17 @@ class PersonView(APIView):
     def get(self, request, id, *args, **kwargs):
         filemeta = get_object_or_none(File, id=id)
         if filemeta:
+            # TODO make sure that with large files it will work efficiently. If not do it using generators
+            start_time = time.time()
             objects = get_list_from_csv(filemeta.filename)
             page = request.GET.get('page')
             paginator = Paginator(objects, 10)
             try:
                 objects_page = paginator.page(page)
-            except PageNotAnInteger:
-                # if not int, return first page
-                objects_page = paginator.page(1)
-            except EmptyPage:
-                # if page is out of range return last page
-                objects_page = paginator.page(paginator.num_pages)
+            except (PageNotAnInteger, EmptyPage):
+                # if not int or out of range return Not found
+                return Response("Not found", status=status.HTTP_404_NOT_FOUND)
+            print(time.time() - start_time)
             return Response(objects_page.object_list)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
