@@ -47,19 +47,12 @@ class ClientAPI:
         except JSONDecodeError as error:
             raise ClientAPIException(error.args[0])
 
-    def get_people_list(self):
+    def get_page_by_number(self, page_number: int):
         """
-        Get all people from all pages
+        Get page by given number
         """
-        result = []
-
-        page_number = 1
-        while True:
-            page = self.__get_json(self.PEOPLE_URL, params={'page': page_number})
-            result.extend(page['results'])
-            if not page['next']:
-                break
-        return result
+        page = self.__get_json(self.PEOPLE_URL, params={'page': page_number})
+        return page
 
     def get_person_tool_by_id(self, id: int, type_of_tool: str):
         try:
@@ -102,20 +95,51 @@ def get_all_person_tool_ids(urls: list):
     Get list of ids from list of urls
     """
     result = []
-    for i in urls:
-        id = get_id_from_url(i)
+    for url in urls:
+        id = get_id_from_url(url)
         result.append(id)
     return result
+
+
+def retry(exception, function, func_args):
+    """
+    Try to call function again and check results
+    """
+    try:
+        result = function(*func_args)
+        return True, result
+    except exception as error:
+        logger.error(error)
+        return False, None
+
+
+def get_people_list(api_client: ClientAPI):
+    """
+    Get all people from all pages
+    """
+    data = []
+    page_number = 1
+    while True:
+        try:
+            page = api_client.get_page_by_number(page_number)
+        except ClientAPIException as error:
+            logger.warning(error)
+            answer, page = retry(ClientAPIException, api_client.get_page_by_number, (page_number,))
+            if answer is False:
+                break
+
+        data.extend(page['results'])
+        if not page['next']:
+            break
+        page_number += 1
+
+    return data
 
 
 def people_dataset():
     api_client = ClientAPI()
 
-    try:
-        data = api_client.get_people_list()
-    except ClientAPIException as error:
-        logger.error(error)
-        return []
+    data = get_people_list(api_client)
 
     for person in data:
         result = {}
@@ -143,7 +167,6 @@ def people_dataset():
 
 if __name__ == '__main__':
     csv_writer = CSVWriter()
-
 
     for person in people_dataset():
         print(person)
