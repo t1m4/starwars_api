@@ -182,7 +182,7 @@ CELERY_RESULT_BACKEND = 'redis://app_redis:6379/0'
 CELERY_BEAT_SCHEDULE = {
    'add': {
        'task': 'swapi.tasks.task_get_all_in_csv',
-       'schedule': 5 * 60, # each 5 minutes
+       'schedule': 60 * 60, # each 5 minutes
    }
 }
 
