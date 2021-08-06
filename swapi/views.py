@@ -1,22 +1,29 @@
 import time
 
+import requests
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 # Create your views here.
 from rest_framework import status, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from starwars import settings
 from swapi.models import File
 from swapi.serializers import FileSerializer
 from swapi.tasks import task_get_all_in_csv
+from swapi.utils.client_api.api import ClientAPI
 from swapi.utils.model_utils import get_object_or_none
-from swapi.utils.petl_utils import get_list_from_csv, csv_reader
+from swapi.utils.petl_utils import get_list_from_csv
 
 
 class View(APIView):
     def get(self, request, *args, **kwargs):
-        task_get_all_in_csv.delay()
-        return Response("ok")
+        # task_get_all_in_csv.delay()
+        # return Response("ok")
+        # for i in csv_reader('people_yfhrnl3gb34fmosqgmqd.csv'):
+        #     print(i)
+        read_csv_file(settings.STATICFILES_DIRS[0] + 'people_yfhrnl3gb34fmosqgmqd.csv', 10)
+        return Response('ok')
 
 
 class PersonView(APIView):
@@ -27,7 +34,7 @@ class PersonView(APIView):
             # TODO make sure that with large files it will work efficiently. If not do it using generators
             start_time = time.time()
             objects = get_list_from_csv(filemeta.filename)
-            page = request.GET.get('page')
+            page = request.GET.get('page', 1)
             paginator = Paginator(objects, 10)
             try:
                 objects_page = paginator.page(page)
