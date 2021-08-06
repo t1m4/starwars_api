@@ -5,7 +5,7 @@ from json import JSONDecodeError
 import requests
 
 from swapi.utils.client_api.exceptions import ClientAPIException
-from swapi.utils.petl_utils import CSVWriter
+from swapi.utils.csv_utils.petl_utils import CSVWriter
 
 logger = logging.getLogger('starwars.console_logger')
 
