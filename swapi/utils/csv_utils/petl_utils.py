@@ -4,7 +4,7 @@ import os
 import petl
 from django.conf import settings
 
-from swapi.utils.csv_utils.exceptions import EmptyPage, PageNotAnPositiveInteger
+from swapi.utils.csv_utils.exceptions import EmptyPage, PageNotAnPositiveInteger, FileNotExist
 
 logger = logging.getLogger('starwars.console_logger')
 
@@ -14,8 +14,7 @@ class CSVWriter():
         """
         Write any dict to csv file. If it doesn't exist then create it with headers
         """
-        # filename = settings.STATICFILES_DIRS[0] + filename
-        filename = filename
+        filename = settings.STATICFILES_DIRS[0] + filename
         content = [content]
         table = petl.fromdicts(content, header=content[0].keys())
         exist = os.path.exists(filename)
@@ -29,20 +28,24 @@ class CSVWriter():
 class CSVReader():
     MAX_PAGE_SIZE = 10
 
-    def __file_generator(self, filename):
+    def __file_read(self, filename):
+        exist = os.path.exists(filename)
+        if not exist:
+            raise FileNotExist('File does not exist')
+
         file = open(filename, "r")
         index = 0
         for line in file:
             yield index, line
             index += 1
 
-    def __read(self, filename: str, max_page_size: int, start_from_line: int = 1):
+    def read_file_from_line(self, filename: str, max_page_size: int, start_from_line: int = 1):
         """
         Read curtain line from file
         """
         filename = settings.STATICFILES_DIRS[0] + filename
         result_lines = []
-        for index, line in self.__file_generator(filename):
+        for index, line in self.__file_read(filename):
             if index < start_from_line:
                 continue
             elif index >= start_from_line + max_page_size:
@@ -56,7 +59,7 @@ class CSVReader():
         """
         Read from give CSV file
         :param count_of_people: count of people in file
-        :param page: number of page given by use
+        :param page: number of page given by user
         :param max_page_size: max page size in pagination
         """
         if page < 1:
@@ -69,18 +72,6 @@ class CSVReader():
         if start_from_line > count_of_people:
             raise EmptyPage("Can't find page")
 
-        result = self.__read(filename, start_from_line=start_from_line, max_page_size=self.MAX_PAGE_SIZE)
+        result = self.read_file_from_line(filename, start_from_line=start_from_line, max_page_size=max_page_size)
         return result
 
-
-def get_list_from_csv(filename):
-    """
-    Load all persons from csv
-    """
-    filename = settings.STATICFILES_DIRS[0] + filename
-    exist = os.path.exists(filename)
-    if exist:
-        t = petl.fromcsv(filename)
-        return list(petl.data(t))
-    else:
-        return []

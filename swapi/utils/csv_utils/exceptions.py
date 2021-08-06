@@ -1,4 +1,4 @@
-class EmptyPage(Exception):
+class CSVReaderException(Exception):
     def __init__(self, message):
         self.message = message
 
@@ -6,5 +6,13 @@ class EmptyPage(Exception):
         return self.message
 
 
-class PageNotAnPositiveInteger(EmptyPage):
+class EmptyPage(CSVReaderException):
+    pass
+
+
+class PageNotAnPositiveInteger(CSVReaderException):
+    pass
+
+
+class FileNotExist(CSVReaderException):
     pass
