@@ -1,8 +1,8 @@
 import logging
 import re
+from json import JSONDecodeError
 
 import requests
-import simplejson
 
 from swapi.utils.client_api.exceptions import ClientAPIException
 from swapi.utils.petl_utils import CSVWriter
@@ -44,7 +44,7 @@ class ClientAPI:
     def __make_json(self, response: requests.Response):
         try:
             return response.json()
-        except simplejson.errors.JSONDecodeError as error:
+        except JSONDecodeError as error:
             raise ClientAPIException(error.args[0])
 
     def get_people_list(self):
@@ -88,8 +88,6 @@ class ClientAPI:
 def get_id_from_url(url: str):
     """
     Get object id from given url
-    :param url:
-    :return:
     """
     id_pattern = r'/(\d+)/?$'
     result = re.search(id_pattern, url)
@@ -112,10 +110,12 @@ def get_all_person_tool_ids(urls: list):
 
 def people_dataset():
     api_client = ClientAPI()
+
     try:
         data = api_client.get_people_list()
     except ClientAPIException as error:
-        return
+        logger.error(error)
+        return []
 
     for person in data:
         result = {}
@@ -127,22 +127,24 @@ def people_dataset():
         result['eye_color'] = person.get('eye_color')
         result['gender'] = person.get('gender')
 
-        film_ids = get_all_person_tool_ids(person.get('films'))
+        film_ids = get_all_person_tool_ids(person.get('films', []))
         result['films'] = api_client.get_person_tools(film_ids, type_of_tool='films')
 
-        species_ids = get_all_person_tool_ids(person.get('species'))
+        species_ids = get_all_person_tool_ids(person.get('species', []))
         result['species'] = api_client.get_person_tools(species_ids, type_of_tool='species')
 
-        vehicles_ids = get_all_person_tool_ids(person.get('vehicles'))
+        vehicles_ids = get_all_person_tool_ids(person.get('vehicles', []))
         result['vehicles'] = api_client.get_person_tools(vehicles_ids, type_of_tool='vehicles')
 
-        starships_ids = get_all_person_tool_ids(person.get('starships'))
+        starships_ids = get_all_person_tool_ids(person.get('starships', []))
         result['starships'] = api_client.get_person_tools(starships_ids, type_of_tool='starships')
         yield result
 
 
 if __name__ == '__main__':
     csv_writer = CSVWriter()
+
+
     for person in people_dataset():
         print(person)
         csv_writer.write('../../example.csv', person)
