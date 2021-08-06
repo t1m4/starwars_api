@@ -113,34 +113,23 @@ def retry(exception, function, func_args):
         return False, None
 
 
-def get_people_list(api_client: ClientAPI):
+def get_tools(api_client: ClientAPI, urls: list, type: str):
     """
-    Get all people from all pages
+    Get each types of tools
     """
-    data = []
-    page_number = 1
-    while True:
-        try:
-            page = api_client.get_page_by_number(page_number)
-        except ClientAPIException as error:
-            logger.warning(error)
-            answer, page = retry(ClientAPIException, api_client.get_page_by_number, (page_number,))
-            if answer is False:
-                break
-
-        data.extend(page['results'])
-        if not page['next']:
-            break
-        page_number += 1
-
-    return data
+    try:
+        ids = get_all_person_tool_ids(urls)
+        return api_client.get_person_tools(ids, type)
+    except ClientAPIException as error:
+        logger.warning(error)
+        answer, tools = retry(ClientAPIException, api_client.get_person_tools, (ids, type,))
+        if answer is False:
+            return []
+        else:
+            return tools
 
 
-def people_dataset():
-    api_client = ClientAPI()
-
-    data = get_people_list(api_client)
-
+def get_people_from_page(data: list, api_client: ClientAPI):
     for person in data:
         result = {}
         result['name'] = person.get('name')
@@ -151,18 +140,31 @@ def people_dataset():
         result['eye_color'] = person.get('eye_color')
         result['gender'] = person.get('gender')
 
-        film_ids = get_all_person_tool_ids(person.get('films', []))
-        result['films'] = api_client.get_person_tools(film_ids, type_of_tool='films')
+        result['films'] = get_tools(api_client, person.get('films', []), type='films')
+        result['species'] = get_tools(api_client, person.get('species', []), type='species')
+        result['vehicles'] = get_tools(api_client, person.get('vehicles', []), type='vehicles')
+        result['starships'] = get_tools(api_client, person.get('starships', []), type='starships')
 
-        species_ids = get_all_person_tool_ids(person.get('species', []))
-        result['species'] = api_client.get_person_tools(species_ids, type_of_tool='species')
-
-        vehicles_ids = get_all_person_tool_ids(person.get('vehicles', []))
-        result['vehicles'] = api_client.get_person_tools(vehicles_ids, type_of_tool='vehicles')
-
-        starships_ids = get_all_person_tool_ids(person.get('starships', []))
-        result['starships'] = api_client.get_person_tools(starships_ids, type_of_tool='starships')
         yield result
+
+
+def people_dataset():
+    api_client = ClientAPI()
+
+    page_number = 1
+    while True:
+        try:
+            page = api_client.get_page_by_number(page_number)
+        except ClientAPIException as error:
+            logger.warning(error)
+            answer, page = retry(ClientAPIException, api_client.get_page_by_number, (page_number,))
+            if answer is False:
+                break
+
+        yield from get_people_from_page(page['results'], api_client)
+        if not page['next']:
+            break
+        page_number += 1
 
 
 if __name__ == '__main__':
