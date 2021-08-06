@@ -20,7 +20,6 @@ def task_get_all_in_csv():
 
     count = 0
     for person in people_dataset():
-        logger.info(person)
         csv_writer.write(filename, person)
         count += 1
     File.objects.create(filename=filename, count_of_people=count)
