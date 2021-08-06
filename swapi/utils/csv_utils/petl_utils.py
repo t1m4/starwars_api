@@ -1,7 +1,5 @@
 import logging
 import os
-import time
-from pathlib import Path
 
 import petl
 from django.conf import settings
@@ -55,6 +53,12 @@ class CSVReader():
         return result_lines
 
     def pagination_read(self, filename: str, count_of_people: int, page: int, max_page_size: int = None):
+        """
+        Read from give CSV file
+        :param count_of_people: count of people in file
+        :param page: number of page given by use
+        :param max_page_size: max page size in pagination
+        """
         if page < 1:
             raise PageNotAnPositiveInteger('Page is not an positive number')
 
@@ -80,14 +84,3 @@ def get_list_from_csv(filename):
         return list(petl.data(t))
     else:
         return []
-
-
-if __name__ == '__main__':
-    start_time = time.time()
-    # filename = Path(__file__).resolve().parent / "small_file.csv"
-    filename = Path(__file__).resolve().parent / "big_file_delimiter.csv"
-    # filename = Path(__file__).resolve().parent / "small_file_delimiter.csv"
-    csv_reader = CSVReader()
-    # r = csv_reader.read(filename, 1)
-    # print(time.time() - start_time, r)
-    csv_reader.pagination_read('big_file_delimiter.csv', 10, )

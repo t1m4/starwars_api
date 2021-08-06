@@ -5,7 +5,7 @@ import string
 from celery import shared_task
 
 from swapi.models import File
-from swapi.utils.petl_utils import CSVWriter
+from swapi.utils.csv_utils.petl_utils import CSVWriter
 from swapi.utils.client_api.api import people_dataset
 
 logger = logging.getLogger('starwars.console_logger')
