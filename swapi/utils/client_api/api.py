@@ -64,7 +64,7 @@ class ClientAPI:
     def get_person_tool_by_id(self, id: int, type_of_tool: str):
         try:
             url = self.TYPES_OF_TOOL_URL[type_of_tool]
-        except:
+        except KeyError:
             raise ValueError("Can't find type of person tool: " + type_of_tool)
         url = url.format(id=id)
         return self.__get_json(url)
@@ -75,7 +75,7 @@ class ClientAPI:
         """
         try:
             field = self.TYPES_OF_TOOL_FIELDS[type_of_tool]
-        except:
+        except KeyError:
             raise ValueError("Can't find type of person tool: " + type_of_tool)
 
         results = []
