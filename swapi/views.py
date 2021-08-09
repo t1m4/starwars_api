@@ -8,7 +8,7 @@ from swapi.models import File
 from swapi.serializers import FileSerializer
 from swapi.tasks import task_get_all_in_csv
 from swapi.utils.csv_utils.exceptions import EmptyPage, PageNotAnPositiveInteger, FileNotExist
-from swapi.utils.csv_utils.petl_utils import CSVReader, aggregate_csv, get_fields
+from swapi.utils.csv_utils.petl_utils import CSVReader, get_keys
 from swapi.utils.model_utils import get_object_or_none
 
 
@@ -46,22 +46,17 @@ class FileList(generics.ListAPIView):
 
 class PersonAggregateView(APIView):
     def get(self, request, id, *args, **kwargs):
+        try:
+            keys = get_keys(request.GET)
+        except KeyError:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
         filemeta = get_object_or_none(File, id=id)
         if filemeta:
             csv_reader = CSVReader()
-            try:
-                keys = get_fields(request.GET)
-            except KeyError:
-                return Response(status=status.HTTP_404_NOT_FOUND)
+            result = csv_reader.aggregation_read(filemeta.filename, keys)
+            response = csv_reader.to_list(result, keys)
 
-            try:
-                results = csv_reader.read_file_from_line(filemeta.filename, start_from_line=0,
-                                                         max_page_size=filemeta.count_of_people)
-
-            except (EmptyPage, PageNotAnPositiveInteger, FileNotExist) as e:
-                return Response(status=status.HTTP_404_NOT_FOUND)
-
-            response = aggregate_csv(results, keys)
             return Response(response)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
