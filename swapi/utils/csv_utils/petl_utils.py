@@ -20,9 +20,9 @@ class CSVWriter():
         exist = os.path.exists(filename)
         # petl.appendcsv(table, filename, write_header=not exist)
         if exist:
-            petl.appendcsv(table, filename, delimiter=":")
+            petl.appendcsv(table, filename, delimiter=";")
         else:
-            petl.appendcsv(table, filename, delimiter=":", write_header=True)
+            petl.appendcsv(table, filename, delimiter=";", write_header=True)
 
 
 class CSVReader():
@@ -51,7 +51,7 @@ class CSVReader():
             elif index >= start_from_line + max_page_size:
                 break
             else:
-                line = line.strip().split(':')
+                line = line.strip().split(';')
                 result_lines.append(line)
         return result_lines
 
@@ -75,3 +75,34 @@ class CSVReader():
         result = self.read_file_from_line(filename, start_from_line=start_from_line, max_page_size=max_page_size)
         return result
 
+
+def get_fields(request_fields):
+    """
+    Try to get certain fields from request.GET
+    """
+    list_of_fields = ['name', 'height', 'mass', 'hair_color', 'skin_color', 'eye_color', 'birth_year', 'gender',
+                      'homeworld', 'date']
+    keys = []
+    for field in list_of_fields:
+        if request_fields.get(field):
+            keys.append(field)
+    if len(keys) == 0:
+        raise KeyError("Can't find fields")
+    return keys
+
+
+def aggregate_csv(file_output, keys):
+    """
+    Aggregate csv file output using keys
+    """
+
+    key_length = len(keys)
+    if key_length > 1:
+        aggregate_results = petl.aggregate(file_output, key=keys, aggregation=len, )
+    elif key_length == 1:
+        aggregate_results = petl.aggregate(file_output, key=keys[0], aggregation=len, )
+    results = []
+    for row in aggregate_results:
+        results.append(row)
+
+    return results

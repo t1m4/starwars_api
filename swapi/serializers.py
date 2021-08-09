@@ -6,4 +6,5 @@ from swapi.models import File
 class FileSerializer(serializers.ModelSerializer):
     class Meta:
         model = File
-        fields = "__all__"
+        fields = ['id', 'filename', 'datetime', 'count_of_people']
+
