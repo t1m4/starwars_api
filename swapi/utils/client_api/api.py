@@ -146,14 +146,13 @@ def get_people_from_page(data: list, api_client: ClientAPI):
         homeworld_id = get_id_from_url(person.get('homeworld'))
         field = api_client.TYPES_OF_TOOL_FIELDS['homeworld']
         result['homeworld'] = api_client.get_person_tool_by_id(homeworld_id, 'homeworld')[field]
+        result['date'] = person.get('edited')[:10]
 
         result['films'] = get_tools(api_client, person.get('films', []), type='films')
         result['species'] = get_tools(api_client, person.get('species', []), type='species')
         result['vehicles'] = get_tools(api_client, person.get('vehicles', []), type='vehicles')
         result['starships'] = get_tools(api_client, person.get('starships', []), type='starships')
 
-        result['created'] = person.get('created')
-        result['date'] = person.get('edited')[:10]
         yield result
 
 
