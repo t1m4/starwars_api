@@ -19,12 +19,14 @@ class ClientAPI:
         'species': 'name',
         'vehicles': 'name',
         'starships': 'name',
+        'homeworld': 'name',
     }
     TYPES_OF_TOOL_URL = {
         'films': 'https://swapi.dev/api/films/{id}/',
         'species': 'https://swapi.dev/api/species/{id}/',
         'vehicles': 'https://swapi.dev/api/vehicles/{id}/',
         'starships': 'https://swapi.dev/api/starships/{id}/',
+        'homeworld': 'https://swapi.dev/api/planets/{id}/'
     }
 
     def __get_json(self, url: str, params=None, timeout=None):
@@ -138,13 +140,20 @@ def get_people_from_page(data: list, api_client: ClientAPI):
         result['hair_color'] = person.get('hair_color')
         result['skin_color'] = person.get('skin_color')
         result['eye_color'] = person.get('eye_color')
+        result['birth_year'] = person.get('birth_year')
         result['gender'] = person.get('gender')
+
+        homeworld_id = get_id_from_url(person.get('homeworld'))
+        field = api_client.TYPES_OF_TOOL_FIELDS['homeworld']
+        result['homeworld'] = api_client.get_person_tool_by_id(homeworld_id, 'homeworld')[field]
 
         result['films'] = get_tools(api_client, person.get('films', []), type='films')
         result['species'] = get_tools(api_client, person.get('species', []), type='species')
         result['vehicles'] = get_tools(api_client, person.get('vehicles', []), type='vehicles')
         result['starships'] = get_tools(api_client, person.get('starships', []), type='starships')
 
+        result['created'] = person.get('created')
+        result['date'] = person.get('edited')[:10]
         yield result
 
 
