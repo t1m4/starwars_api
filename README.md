@@ -35,12 +35,13 @@ counts as follows:
 6. `./docker/start.sh` - start Django application
 
 ### Run using docker
-1. `docker-compose up`
+1. `docker-compose up app`
+2. `docker-compose up flower` - start flower to check celery tasks
 
 ### WIP
 
 1. Write more tests using pytest 
 2. Asynchronous requests integration
 3. Read and write very large files using custom indexes and .seek()
-6. Add docker-compose flower and documentation using sphinx
+6. Add documentation using sphinx
 7. Minio or S3 integration for saving files

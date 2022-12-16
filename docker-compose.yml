@@ -1,0 +1,46 @@
+version: '3'
+
+services:
+  _base: &base
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint: []
+    volumes:
+      - .:/app
+    environment: &base-environment
+      ENVIRONMENT: local
+      DEBUG: 1
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 1
+      FLOWER_HOST: flower
+      FLOWER_PORT: 5555
+
+  app:
+    <<: *base
+    ports:
+      - "8000:8000"
+    entrypoint: ["docker/start.sh"]
+    depends_on:
+      - redis
+      - celery
+
+  redis:
+    image: "redis"
+    ports:
+      - '6379:6379'
+  
+  celery:
+    <<: *base
+    depends_on:
+      - redis
+    entrypoint: ["docker/scheduler.sh"]
+
+  flower:
+    <<: *base
+    entrypoint: ["docker/flower.sh"]
+    ports:
+      - "5555:5555"
+    depends_on:
+      - celery
