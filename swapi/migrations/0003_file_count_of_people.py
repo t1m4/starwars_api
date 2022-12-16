@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('swapi', '0002_remove_file_count_of_pages'),
+        ("swapi", "0002_remove_file_count_of_pages"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='file',
-            name='count_of_people',
+            model_name="file",
+            name="count_of_people",
             field=models.IntegerField(default=82),
             preserve_default=False,
         ),

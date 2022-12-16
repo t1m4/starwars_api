@@ -1,5 +1,8 @@
+from typing import Union
+
+
 class ClientAPIException(Exception):
-    def __init__(self, message: str, status_code: int = None):
+    def __init__(self, message: str, status_code: Union[int, None] = None):
         self.status_code = status_code
         self.error_message = message
 

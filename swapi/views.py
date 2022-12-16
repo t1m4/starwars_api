@@ -1,62 +1,42 @@
-# Create your views here.
-
-from rest_framework import status, generics
+from django.shortcuts import get_object_or_404
+from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from swapi.models import File
-from swapi.serializers import FileSerializer
+from swapi.serializers import (
+    FileSerializer,
+    PageInputSerializer,
+    PersonFieldsInputSerializer,
+)
+from swapi.services import PersonsService
 from swapi.tasks import task_get_all_in_csv
-from swapi.utils.csv_utils.exceptions import EmptyPage, PageNotAnPositiveInteger, FileNotExist
-from swapi.utils.csv_utils.petl_utils import CSVReader, get_keys
-from swapi.utils.model_utils import get_object_or_none
 
 
 class View(APIView):
     def get(self, request, *args, **kwargs):
         task_get_all_in_csv()
-        return Response('ok')
+        return Response("ok")
 
 
 class PersonView(APIView):
-
     def get(self, request, id, *args, **kwargs):
-        filemeta = get_object_or_none(File, id=id)
-        try:
-            page = int(request.GET.get('page', 1))
-        except ValueError:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        if filemeta:
-            csv_reader = CSVReader()
-            try:
-                results = csv_reader.pagination_read(filemeta.filename, filemeta.count_of_people, page=page)
-            except (EmptyPage, PageNotAnPositiveInteger, FileNotExist):
-                return Response(status=status.HTTP_404_NOT_FOUND)
-
-            return Response(results)
-        else:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+        filemeta = get_object_or_404(File, id=id)
+        serializer = PageInputSerializer(data=request.GET)
+        serializer.is_valid(raise_exception=True)
+        results = PersonsService().get_persons(filemeta, serializer.validated_data["page"])
+        return Response(results)
 
 
 class FileList(generics.ListAPIView):
-    queryset = File.objects.all().order_by('-id')
+    queryset = File.objects.all().order_by("-id")
     serializer_class = FileSerializer
 
 
 class PersonAggregateView(APIView):
     def get(self, request, id, *args, **kwargs):
-        try:
-            keys = get_keys(request.GET)
-        except KeyError:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        filemeta = get_object_or_none(File, id=id)
-        if filemeta:
-            csv_reader = CSVReader()
-            result = csv_reader.aggregation_read(filemeta.filename, keys)
-            response = csv_reader.to_list(result, keys)
-
-            return Response(response)
-        else:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+        filemeta = get_object_or_404(File, id=id)
+        serializer = PersonFieldsInputSerializer(data=request.GET)
+        serializer.is_valid(raise_exception=True)
+        results = PersonsService().get_aggregated_persons(filemeta, serializer.validated_data["person_fields"])
+        return Response(results)

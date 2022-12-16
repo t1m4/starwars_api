@@ -5,18 +5,17 @@ import string
 from celery import shared_task
 
 from swapi.models import File
-from swapi.utils.csv_utils.petl_utils import CSVWriter
 from swapi.utils.client_api.api import people_dataset
+from swapi.utils.csv_utils.petl_utils import CSVWriter
 
-logger = logging.getLogger('starwars.console_logger')
-
+logger = logging.getLogger("starwars.console_logger")
 
 
 @shared_task
 def task_get_all_in_csv():
     csv_writer = CSVWriter()
-    random_string = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(20))
-    filename = f'people_{random_string}.csv'
+    random_string = "".join(random.choice(string.ascii_lowercase + string.digits) for _ in range(20))
+    filename = f"people_{random_string}.csv"
 
     count = 0
     for person in people_dataset():

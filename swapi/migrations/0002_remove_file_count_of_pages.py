@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('swapi', '0001_initial'),
+        ("swapi", "0001_initial"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='file',
-            name='count_of_pages',
+            model_name="file",
+            name="count_of_pages",
         ),
     ]

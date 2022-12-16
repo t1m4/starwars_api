@@ -7,17 +7,16 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='File',
+            name="File",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('filename', models.CharField(max_length=40, unique=True)),
-                ('datetime', models.DateTimeField(auto_now_add=True)),
-                ('count_of_pages', models.IntegerField()),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("filename", models.CharField(max_length=40, unique=True)),
+                ("datetime", models.DateTimeField(auto_now_add=True)),
+                ("count_of_pages", models.IntegerField()),
             ],
         ),
     ]

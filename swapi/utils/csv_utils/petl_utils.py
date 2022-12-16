@@ -1,37 +1,48 @@
 import logging
 import os
+from collections import defaultdict
+from typing import Dict, Iterable, List, Tuple, Union
 
 import petl
 from django.conf import settings
 
-from swapi.utils.csv_utils.exceptions import EmptyPage, PageNotAnPositiveInteger, FileNotExist
+from swapi.constants import ALLOWED_PERSON_FIELDS
+from swapi.utils.csv_utils.exceptions import (
+    EmptyPage,
+    FileNotExist,
+    PageNotAnPositiveInteger,
+)
 
-logger = logging.getLogger('starwars.console_logger')
+logger = logging.getLogger("starwars.console_logger")
+DEFAULT_DELIMITER = ";"
 
 
-class CSVWriter():
-    def write(self, filename: str, content: dict):
-        """
-        Write any dict to csv file. If it doesn't exist then create it with headers
+class CSVWriter:
+    def write(self, filename: str, content: Dict):
+        """Write any dict to csv file. If it doesn't exist then create it with headers
+
+        Args:
+            filename (str): name of file
+            content (Dict): Any Dict with content
         """
         filename = settings.STATICFILES_DIRS[0] + filename
-        content = [content]
-        table = petl.fromdicts(content, header=content[0].keys())
+        list_content = [content]
+        table = petl.fromdicts(list_content, header=list_content[0].keys())
         exist = os.path.exists(filename)
-        # petl.appendcsv(table, filename, write_header=not exist)
         if exist:
-            petl.appendcsv(table, filename, delimiter=";")
+            petl.appendcsv(table, filename, delimiter=DEFAULT_DELIMITER)
         else:
-            petl.appendcsv(table, filename, delimiter=";", write_header=True)
+            petl.appendcsv(table, filename, delimiter=DEFAULT_DELIMITER, write_header=True)
 
 
-class CSVReader():
+class CSVReader:
     MAX_PAGE_SIZE = 10
+    DEFAULT_START_LINE = 1
 
-    def __file_read(self, filename):
+    def read_file(self, filename: str) -> Iterable:
         exist = os.path.exists(filename)
         if not exist:
-            raise FileNotExist('File does not exist')
+            raise FileNotExist("File does not exist")
 
         file = open(filename, "r")
         index = 0
@@ -39,123 +50,114 @@ class CSVReader():
             yield index, line
             index += 1
 
-    def read_file_from_line(self, filename: str, max_page_size: int, start_from_line: int = 1):
-        """
-        Read curtain line from file
+    def read_file_from_line(self, filename: str, page_size: int, start_line: int) -> List[List[str]]:
+        """Read certain line from file
+
+        Args:
+            filename (str): name of file
+            page_size (int): lenght of page
+            start_line (int): first line to read
+        Returns:
+            List[List[str]]: list of row person
         """
         filename = settings.STATICFILES_DIRS[0] + filename
         result_lines = []
-        for index, line in self.__file_read(filename):
-            if index < start_from_line:
+        for index, line in self.read_file(filename):
+            if index < start_line:
                 continue
-            elif index >= start_from_line + max_page_size:
+            elif index >= start_line + page_size:
                 break
             else:
-                line = line.strip().split(';')
+                line = line.strip().split(DEFAULT_DELIMITER)
                 result_lines.append(line)
         return result_lines
 
-    def pagination_read(self, filename: str, count_of_people: int, page: int, max_page_size: int = None):
-        """
-        Read from given CSV file with pagination
-        :param count_of_people: count of people in file
-        :param page: number of page given by user
-        :param max_page_size: max page size in pagination
+    def read_with_pagination(
+        self, filename: str, count_of_lines: int, page: int, page_size: Union[int, None] = None
+    ) -> List[List[str]]:
+        """Read from given CSV file with pagination
+
+        Args:
+            filename (str): name of file
+            count_of_lines (int): number of people in file
+            page (int): number of page given by user
+            page_size (int): lenght of page
+        Raises:
+            PageNotAnPositiveInteger: If `page` not positive number
+            EmptyPage: If `page` more than count_of_lines
+
+        Returns:
+            List[List[str]]: list of persons
         """
         if page < 1:
-            raise PageNotAnPositiveInteger('Page is not an positive number')
+            raise PageNotAnPositiveInteger("Page is not an positive number")
 
-        max_page_size = max_page_size or self.MAX_PAGE_SIZE
-        start_from_line = (page - 1) * max_page_size + 1
+        page_size = page_size or self.MAX_PAGE_SIZE
+        page_size = page_size if page_size < self.MAX_PAGE_SIZE else self.MAX_PAGE_SIZE
+        start_line = (page - 1) * page_size + 1
 
-        # If there are more lines than people
-        if start_from_line > count_of_people:
+        # If there are more lines than people count
+        if start_line > count_of_lines:
             raise EmptyPage("Can't find page")
 
-        result = self.read_file_from_line(filename, start_from_line=start_from_line, max_page_size=max_page_size)
-        return result
+        return self.read_file_from_line(filename, start_line=start_line, page_size=page_size)
 
-    def aggregation_read(self, filename, keys: list):
+    def read_with_fields_combination(self, filename: str, fields: List[str]):
+        """Read from given CSV file only give fields. Count the occurrences of values (combination of values) for fields
+
+        Args:
+            filename (str): name of file
+            fields (List[str]): fields
+        Returns:
+            List[List[str]]: List of unique fields values and each unique fields occurrences count
         """
-        Aggregate csv file result
-        """
+        fields_with_indexes: List[Tuple[int, str]] = self.__add_fields_indexes(fields)
         filename = settings.STATICFILES_DIRS[0] + filename
-        aggregation_result = {}
-        for index, line in self.__file_read(filename):
+        occurrences_count: Dict[Tuple, int] = defaultdict(int)
+        for index, line in self.read_file(filename):
             if index == 0:
                 continue
-            row = line.strip().split(';')
 
-            aggregate_row = []
-            for key in keys:
-                aggregate_row.append(row[key[0]])
+            line_as_list = line.strip().split(DEFAULT_DELIMITER)
+            fields_values = []
+            for field in fields_with_indexes:
+                fields_values.append(line_as_list[field[0]])
+            tuple_field_values = tuple(fields_values)
+            occurrences_count[tuple_field_values] += 1
 
-            # add to the dict
-            tuple_row = tuple(aggregate_row)
-            if tuple_row not in aggregation_result:
-                aggregation_result[tuple_row] = 1
-            else:
-                aggregation_result[tuple_row] += 1
+        return self.__to_list(occurrences_count, fields)
 
-        return aggregation_result
+    @staticmethod
+    def __add_fields_indexes(initial_fields: List[str]) -> List[Tuple[int, str]]:
+        """Add indexes to the fields.
 
-    def to_list(self, result, keys):
+        Args:
+            initial_fields (List[str]): fields
+        Returns:
+            List[Tuple[int, str]]: fields with the indexes like [(0, 'name'), ...]
+
         """
-        Change dict to list. And first row in results
-        """
-        first_row = self.__get_first_row(keys)
-        list_result = [first_row]
+        result_fields: List[Tuple[int, str]] = []
+        for index, field_name in enumerate(ALLOWED_PERSON_FIELDS):
+            if field_name in initial_fields:
+                result: Tuple[int, str] = (index, field_name)
+                result_fields.append(result)
+        return result_fields
 
-        for key, value in result.items():
-            row_list = list(key)
-            row_list.append(value)
+    def __to_list(self, occurrences_count: Dict[Tuple, int], initial_fields: List[str]) -> List[List[str]]:
+        """Change Dict[Tuple, int] to List[List[str]]. And first row with fields name
+
+        Args:
+            occurrences_count: (Dict[Tuple, int]): dict of fields count
+            initial_fields (List[str]): fields
+        Returns:
+            List[List[str]]: List of unique fields values and each unique fields occurrences count
+        """
+        initial_fields.extend(["count"])
+        list_result = [initial_fields]
+
+        for field_values, field_values_count in occurrences_count.items():
+            row_list = list(field_values)
+            row_list.append(field_values_count)
             list_result.append(row_list)
         return list_result
-
-    def __get_first_row(self, keys_with_index: list):
-        """
-        Get first row
-        """
-        keys = []
-        for i in range(len(keys_with_index)):
-            keys.append(keys_with_index[i][1])
-        keys.append('count')
-        return keys
-
-
-def get_keys(request_fields):
-    """
-    Try to get certain fields from request.GET
-    """
-    list_of_fields = ['name', 'height', 'mass', 'hair_color', 'skin_color', 'eye_color', 'birth_year', 'gender',
-                      'homeworld', 'date']
-    keys = []
-    for i in range(len(list_of_fields)):
-        if request_fields.get(list_of_fields[i]):
-            keys.append((i, list_of_fields[i]))
-    if len(keys) == 0:
-        raise KeyError("Can't find fields. You must use them")
-    return keys
-
-
-
-
-def aggregate_csv(file_output, keys: list):
-    """
-    Aggregate csv file output using keys
-    """
-
-    key_length = len(keys)
-    key = []
-    for i in range(key_length):
-        key.append(keys[i][1])
-
-    if key_length > 1:
-        aggregate_results = petl.aggregate(file_output, key=key, aggregation=len, )
-    elif key_length == 1:
-        aggregate_results = petl.aggregate(file_output, key=key[0], aggregation=len, )
-    results = []
-    for row in aggregate_results:
-        results.append(row)
-
-    return results
