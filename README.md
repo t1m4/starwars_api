@@ -27,16 +27,37 @@ counts as follows:
 
 
 ### Run using shell
-1. `python3.9 -m venv venv`
-2. `source /venv/bin/activate`
-3. `pip install -r requirements.txt`
+1. Create virtual envinronment
+    ```shell
+    python3.9 -m venv venv
+    ```
+2. Activate virtual envinronment
+    ```shell
+    source /venv/bin/activate
+    ```
+3. Install requirements
+    ```shell
+    pip install -r requirements.txt
+    ```
 4. Create .env file base on .env.dev
-5. `source docker/export.sh` - export environment variables in your current shell
-6. `./docker/start.sh` - start Django application
+5. Export environment variables in your current shell
+    ```shell
+    source docker/export.sh
+    ```
+6. Start Django application 
+    ```shell
+    ./docker/start.sh
+    ``` 
 
 ### Run using docker
-1. `docker-compose up app`
-2. `docker-compose up flower` - start flower to check celery tasks
+1. Run application
+    ```shell
+    docker-compose up app
+    ```
+2. Start flower to check celery tasks
+    ```shell
+    docker-compose up flower
+    ```
 
 ### WIP
 
