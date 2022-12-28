@@ -10,12 +10,14 @@ from swapi.serializers import (
     PersonFieldsInputSerializer,
 )
 from swapi.services import PersonsService
-from swapi.tasks import task_get_all_in_csv
 
 
 class View(APIView):
     def get(self, request, *args, **kwargs):
-        task_get_all_in_csv()
+        from external_api.starwars_api.services import main
+
+        main()
+        # task_get_all_in_csv()
         return Response("ok")
 
 
