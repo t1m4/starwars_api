@@ -74,4 +74,3 @@ The old sync version of API can be found in [feature/sync_api](https://github.co
 2. Read and write very large files using custom indexes and .seek()
 3. Add documentation using sphinx
 4. Minio or AWS S3 integration for saving files
-5. Fix all TODOs
