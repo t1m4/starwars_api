@@ -60,7 +60,7 @@ counts as follows:
     ```
 
 ### Aiohttp client
-Aiohttp AsyncAPIClient in the file [external_api/starwars_api/api.py](https://github.com/t1m4/starwars_api/tree/master/external_api/starwars_api)
+Aiohttp AsyncAPIClient in the file [external_api/starwars_api/api.py](https://github.com/t1m4/starwars_api/blob/master/external_api/starwars_api/api.py)
 
 Tips:
 - After timeout, pending tasks will be canceled inside execute() function.
