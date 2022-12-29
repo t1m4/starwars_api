@@ -63,8 +63,8 @@ counts as follows:
 Aiohttp AsyncAPIClient in the file [external_api/starwars_api/api.py](https://github.com/t1m4/starwars_api/tree/master/external_api/starwars_api)
 
 Tips:
-- Retry tasks. Just save retry_tasks_list and wait() them again. 
 - After timeout, pending tasks will be canceled inside execute() function.
+- Retry tasks. Just save retry_tasks_list and wait() them again. 
 
 The old sync version of API can be found in [feature/sync_api](https://github.com/t1m4/starwars_api/tree/feature/sync_api) branch
 

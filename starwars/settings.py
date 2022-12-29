@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 import os
 from pathlib import Path
 
+import aiohttp
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -189,3 +190,6 @@ if DEBUG:
     INTERNAL_IPS = [
         "127.0.0.1",
     ]
+
+# Aiohttp
+SESSION_TIMEOUT = aiohttp.ClientTimeout(total=10, connect=1)

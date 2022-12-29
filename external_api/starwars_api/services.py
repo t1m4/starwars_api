@@ -6,6 +6,7 @@ import string
 from typing import Any, AsyncGenerator, Dict, List, Tuple, Union
 
 import aiohttp
+from django.conf import settings
 
 from external_api.starwars_api.api import AsyncAPIClient
 from external_api.starwars_api.async_utils import async_timed
@@ -74,11 +75,10 @@ async def get_people_from_page(page_data: List[Dict], api_client: AsyncAPIClient
         result["birth_year"] = person.get("birth_year")
         result["gender"] = person.get("gender")
         result["date"] = person["edited"][:10]
-        result['homeworld'] = await get_person_homeworld(api_client, person)
+        result["homeworld"] = await get_person_homeworld(api_client, person)
 
         # exclude homeworld
         tool_types = list(api_client.TYPES_OF_TOOL_FIELDS.keys())[:-1]
-        # tool_types = ['films', 'species', 'vehicles']
         awaitables = [
             asyncio.create_task(get_tools(api_client, person.get(tool_type, []), type=tool_type))
             for tool_type in tool_types
@@ -92,7 +92,7 @@ async def get_people_from_page(page_data: List[Dict], api_client: AsyncAPIClient
 
 async def async_people_dataset() -> AsyncGenerator:
     """Collect people and its' tools page by page"""
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(timeout=settings.SESSION_TIMEOUT) as session:
         api_client = AsyncAPIClient(session)
         page_number = 1
         while True:

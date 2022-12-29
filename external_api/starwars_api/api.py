@@ -30,15 +30,20 @@ class AsyncAPIClient:
         self.session = session
 
     async def __get_json(self, url: str, params: Union[Dict, None] = None, timeout: Union[int, None] = None) -> Dict:
+        kwargs = {}
+        if params:
+            kwargs["params"] = params
+        if timeout:
+            kwargs["timeout"] = timeout
         try:
-            async with self.session.get(url, params=params, timeout=timeout) as response:
-                if response.status == 200:
-                    return await response.json()
-                else:
-                    raise ClientAPIException("Invalid status code", response.status)
-
+            response = await self.session.get(url, raise_for_status=True, **kwargs)
         except (aiohttp.ClientError, asyncio.TimeoutError) as error:
             raise ClientAPIException(str(error), 500)
+
+        if response.status == 200:
+            return await response.json()
+        else:
+            raise ClientAPIException("Invalid status code", response.status)
 
     async def get_page_by_number(self, page_number: int) -> Dict:
         """Get page by given number"""
